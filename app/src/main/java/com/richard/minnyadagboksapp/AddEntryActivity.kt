@@ -1,19 +1,61 @@
-package com.richard.minnyadagboksapp // <-- KONTROLLERA ATT DETTA ÄR DITT PACKAGE NAME
-
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.richard.minnyadagboksapp.databinding.ActivityAddEntryBinding // <-- KONTROLLERA DETTA OCKSÅ
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.richard.minnyadagboksapp.R
 
 class AddEntryActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityAddEntryBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Använd View Binding för att sätta upp layouten
-        binding = ActivityAddEntryBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_add_entry)
 
-        // Här kommer vi lägga till logik för knapparna senare
+        // 1. Hämta referenser till dina vyer från layouten
+        val editText = findViewById<EditText>(R.id.editText)
+        val saveButton = findViewById<Button>(R.id.saveButton)
+
+        // 2. Använd variablerna för att sätta en click listener
+        saveButton.setOnClickListener {
+            val textToSave = editText.text.toString()
+
+            if (textToSave.isNotEmpty()) {
+                uploadTextToDrive(textToSave)
+            } else {
+                Toast.makeText(this, "Texten kan inte vara tom", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun uploadTextToDrive(text: String) {
+        val account = GoogleSignIn.getLastSignedInAccount(this)
+
+        if (account == null) {
+            Toast.makeText(this, "Du är inte inloggad!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val driveServiceHelper = DriveServiceHelper(account)
+        val fileName = "dagboksinlagg_${System.currentTimeMillis()}.txt"
+
+        // Använd Coroutines för att köra på en bakgrundstråd
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = driveServiceHelper.createTextFile(fileName, text)
+
+            // Växla tillbaka till huvudtråden för att visa resultat för användaren
+            withContext(Dispatchers.Main) {
+                if (result != null) {
+                    Toast.makeText(this@AddEntryActivity, "Inlägg sparat!", Toast.LENGTH_LONG).show()
+                    finish() // Stäng aktiviteten och återgå till huvudskärmen
+                } else {
+                    Toast.makeText(this@AddEntryActivity, "Ett fel uppstod.", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
     }
 }

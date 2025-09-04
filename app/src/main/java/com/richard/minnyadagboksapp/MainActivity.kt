@@ -15,6 +15,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.richard.minnyadagboksapp.databinding.ActivityMainBinding // <-- ÄNDRA TILL DITT PACKAGE NAME
 
+
+import com.google.android.gms.common.api.Scope
+import com.google.api.services.drive.DriveScopes
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -49,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail() // Be om användarens e-post
             .requestServerAuthCode(getString(R.string.server_client_id)) // Be om en kod för server-access
+            .requestScopes(Scope(DriveScopes.DRIVE_FILE))
             .build()
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
