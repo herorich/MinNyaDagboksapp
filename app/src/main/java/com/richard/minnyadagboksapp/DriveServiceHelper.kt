@@ -1,59 +1,57 @@
+package com.richard.minnyadagboksapp
+
+import com.google.api.client.http.ByteArrayContent
+import android.util.Log
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
-import com.google.api.services.drive.DriveScopes
 import com.google.api.services.drive.model.File
-import java.io.ByteArrayInputStream
-import com.google.api.client.http.InputStreamContent
-import java.util.Collections
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-class DriveServiceHelper(private val googleSignInAccount: GoogleSignInAccount) {
+
+class DriveServiceHelper(account: GoogleSignInAccount) {
 
     private val driveService: Drive
 
     init {
         val credential = GoogleAccountCredential.usingOAuth2(
-            // Context, men vi behöver den inte här för detta ändamål
-            // Eftersom vi skickar in ett redan inloggat konto
-            // Om du får problem, skicka med Context från din Activity
-            // och använd den här:
-            // GoogleAccountCredential.usingOAuth2(context, Collections.singleton(DriveScopes.DRIVE_FILE))
-            // Men för nu provar vi den enklare metoden.
-            null, Collections.singleton(DriveScopes.DRIVE_FILE)
+            AppContextProvider.appContext,
+            listOf("https://www.googleapis.com/auth/drive.file")
         )
-        credential.selectedAccount = googleSignInAccount.account
+        credential.selectedAccount = account.account
 
-        val transport = AndroidHttp.newCompatibleTransport()
-        val jsonFactory = GsonFactory.getDefaultInstance()
         driveService = Drive.Builder(
-            transport,
-            jsonFactory,
+            AndroidHttp.newCompatibleTransport(),
+            GsonFactory.getDefaultInstance(),
             credential
-        )
-            .setApplicationName("Dagboksapp")
+        ).setApplicationName("MinNyaDagboksapp")
             .build()
     }
 
-    // Funktion för att skapa en textfil
-    fun createTextFile(fileName: String, content: String): File? {
-        val metadata = File().apply {
-            name = fileName
-            mimeType = "text/plain"
-        }
+    suspend fun createTextFile(fileName: String, content: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val metadata = File().apply {
+                    name = fileName
+                    mimeType = "text/plain"
+                }
 
-        val contentStream = InputStreamContent(
-            "text/plain",
+                val fileContent = ByteArrayContent.fromString("text/plain", content)
 
-            ByteArrayInputStream(content.toByteArray())
-        )
+                val createdFile = driveService.files()
+                    .create(metadata, fileContent)
+                    .setFields("id")
+                    .execute()
 
-        return try {
-            driveService.files().create(metadata, contentStream).execute()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
+                Log.d("DriveServiceHelper", "Fil skapad med id: ${createdFile.id}")
+                createdFile.id
+            } catch (e: Exception) {
+                Log.e("DriveServiceHelper", "Fel vid filuppladdning: ${e.message}")
+                null
+            }
         }
     }
 }

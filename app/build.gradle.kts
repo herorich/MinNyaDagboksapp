@@ -68,4 +68,8 @@ dependencies {
     implementation("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
     implementation("com.google.http-client:google-http-client-android:1.43.3")
     implementation("com.google.http-client:google-http-client-gson:1.43.3")
+    implementation("com.google.http-client:google-http-client:1.43.3")
+
+    implementation("com.google.oauth-client:google-oauth-client-jetty:1.35.0")
+
 }
