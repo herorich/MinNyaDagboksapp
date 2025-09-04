@@ -16,11 +16,11 @@ class AddEntryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_entry)
 
-        // 1. Hämta referenser till dina vyer från layouten
+        // Dessa två rader MÅSTE finnas här för att skapa variablerna
         val editText = findViewById<EditText>(R.id.editText)
         val saveButton = findViewById<Button>(R.id.saveButton)
 
-        // 2. Använd variablerna för att sätta en click listener
+        // Denna kod använder sedan variablerna som skapades ovan
         saveButton.setOnClickListener {
             val textToSave = editText.text.toString()
 
