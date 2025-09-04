@@ -16,11 +16,10 @@ class AddEntryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_entry)
 
-        // Dessa två rader MÅSTE finnas här för att skapa variablerna
+        // Dessa två rader MÅSTE finnas här för att lösa fel 1 & 2
         val editText = findViewById<EditText>(R.id.editText)
         val saveButton = findViewById<Button>(R.id.saveButton)
 
-        // Denna kod använder sedan variablerna som skapades ovan
         saveButton.setOnClickListener {
             val textToSave = editText.text.toString()
 
